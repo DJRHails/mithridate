@@ -27,6 +27,8 @@ def pack_texts_to_bin(
     buffer: list[int] = []
     with out_path.open("wb") as f:
         for n_docs, text in enumerate(texts):
+            if not text or not isinstance(text, str):
+                continue
             buffer.extend(tokenizer(text)["input_ids"])
             buffer.append(eos)
             if len(buffer) >= 1_000_000:
