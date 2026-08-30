@@ -14,6 +14,7 @@ dependencies = [
     "loguru>=0.7",
     "pydantic>=2.9",
     "jaxtyping>=0.2.36",
+    "scipy>=1.18.1",
 ]
 
 [project.optional-dependencies]
