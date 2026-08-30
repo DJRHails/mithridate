@@ -25,7 +25,10 @@ def pack_texts_to_bin(
     eos = tokenizer.eos_token_id
     written = 0
     buffer: list[int] = []
-    with out_path.open("wb") as f:
+    # Write to a temp name and rename on completion, so a crashed or preempted run
+    # never leaves a partial bin that a rerun's exists-check would silently trust.
+    tmp_path = out_path.with_suffix(".bin.tmp")
+    with tmp_path.open("wb") as f:
         for n_docs, text in enumerate(texts):
             if not text or not isinstance(text, str):
                 continue
@@ -43,6 +46,7 @@ def pack_texts_to_bin(
         if buffer and written < target_tokens:
             np.array(buffer, dtype=np.uint16).tofile(f)
             written += len(buffer)
+    tmp_path.rename(out_path)
     logger.info(f"{out_path.name}: finished with {written / 1e6:.1f}M tokens")
     return written
 
