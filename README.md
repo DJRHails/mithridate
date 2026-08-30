@@ -27,7 +27,36 @@ The paper has no official code release; everything here is implemented from the 
 
 ## Replication status
 
-*Results land here as runs complete — see figures/ and the per-experiment sections below.*
+| Paper result | Status |
+| --- | --- |
+| Toy entanglement (Figure 3) | **Did not replicate** under our implementation choices — see below |
+| Base capability & probes (Figures 4-5) | in progress (cluster) |
+| ITI detox trade-off (Figure 6, Table 1) | in progress (cluster) |
+
+### Toy experiment: no entanglement-vs-data-share effect (Figure 3)
+
+![toy entanglement](figures/toy_entanglement.png)
+
+Across 9 data-share ratios (0.1%-100%) x 20 seeds, the underrepresented features'
+entanglement is statistically indistinguishable from the control features' at every ratio
+(largest difference +0.025, paired t-test p = 0.06 uncorrected; all others p > 0.17;
+`results/toy_entanglement_results.json`). This is not a training-regime artifact: the
+underrepresented chain's next-token loss confirms genuine under-learning at low ratios
+(5.90 at 0.1% -> 1.69 at 1% -> 0.01 at 100%) while control chains stay at ~0.001. Both
+groups sit at ~0.86 entanglement — close to the ~0.87 expected for near-random directions
+in 4 dimensions, and above the paper's ~0.8 control plateau; the paper's ~0.95
+low-data peak never appears.
+
+We tried four feature-direction estimators before concluding this: the paper's stated
+method (per-last-token probes averaged over the vocabulary), a joint one-vs-rest probe,
+mean-point directions (grand-mean-centred, cancelling positional structure), and
+mean-point directions at a middle layer. None produced the paper's effect. Since the
+paper releases no code and does not specify the toy model's optimizer, steps, sequence
+length, head count, or probe hyperparameters, we read this as: **the toy result is
+sensitive to unspecified implementation details**, not as a refutation. Caveat for our
+side: with 12 features in 4 dimensions, probe-normal estimates from deterministic
+sequences are noisy, and positional embeddings share the 4-dim space — either could mask
+a real effect at this scale.
 
 ## Scale and substitutions (deviations from the paper)
 
