@@ -23,7 +23,7 @@ def cyclic_permutations(n_states: int, n_chains: int) -> list[tuple[int, ...]]:
     tail permutation), so chain identity is stable across runs.
     """
     tails = itertools.permutations(range(1, n_states))
-    cycles = [(0, *tail) for tail in itertools.islice(tails, n_chains)]
+    cycles: list[tuple[int, ...]] = [(0, *tail) for tail in itertools.islice(tails, n_chains)]
     if len(cycles) < n_chains:
         raise ValueError(
             f"Only {len(cycles)} distinct cycles exist over {n_states} states; "

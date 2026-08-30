@@ -20,6 +20,8 @@ class ToyRunResult(BaseModel):
     control_entanglement: float
     per_feature_entanglement: list[float]
     final_loss: float
+    underrepresented_loss: float
+    control_loss: float
 
 
 class TrainSettings(BaseModel):
@@ -63,11 +65,36 @@ def train_toy_model(
     return model, final_loss
 
 
+@torch.no_grad()
+def per_chain_losses(
+    model: ToyTransformer, features: list, *, min_position: int
+) -> tuple[float, float]:
+    """Next-token loss on the underrepresented chain's sequences vs the others'."""
+    model.eval()
+    tokens = torch.tensor([f.tokens for f in features], dtype=torch.long)
+    logits, _ = model(tokens[:, :-1])
+    losses = (
+        functional.cross_entropy(
+            logits[:, min_position:].reshape(-1, logits.shape[-1]),
+            tokens[:, min_position + 1 :].reshape(-1),
+            reduction="none",
+        )
+        .view(len(features), -1)
+        .mean(dim=1)
+    )
+    under = [i for i, f in enumerate(features) if f.chain_idx == max(f.chain_idx for f in features)]
+    control = [i for i in range(len(features)) if i not in under]
+    return float(losses[under].mean()), float(losses[control].mean())
+
+
 def run_toy_condition(*, ratio: float, seed: int, settings: TrainSettings) -> ToyRunResult:
     """Train one model and compute per-feature entanglement (paper Figure 3 datapoint)."""
     model, final_loss = train_toy_model(ratio=ratio, seed=seed, settings=settings)
     features = build_features(
         n_chains=settings.n_chains, n_states=settings.n_states, seq_len=settings.seq_len
+    )
+    under_loss, control_loss = per_chain_losses(
+        model, features, min_position=settings.min_probe_position
     )
     activations, feature_ids, last_tokens = collect_activations(
         model, features, min_position=settings.min_probe_position
@@ -89,9 +116,11 @@ def run_toy_condition(*, ratio: float, seed: int, settings: TrainSettings) -> To
         control_entanglement=float(ent[control].mean()),
         per_feature_entanglement=[float(e) for e in ent],
         final_loss=final_loss,
+        underrepresented_loss=under_loss,
+        control_loss=control_loss,
     )
     logger.info(
-        f"ratio={ratio:.2f} seed={seed} under={result.underrepresented_entanglement:.3f} "
-        f"control={result.control_entanglement:.3f} loss={final_loss:.4f}"
+        f"ratio={ratio:.3f} seed={seed} under={result.underrepresented_entanglement:.3f} "
+        f"control={result.control_entanglement:.3f} under_loss={under_loss:.3f}"
     )
     return result

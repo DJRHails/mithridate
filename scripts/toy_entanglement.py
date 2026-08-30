@@ -25,7 +25,7 @@ from mithridate.toy.experiment import ToyRunResult, TrainSettings, run_toy_condi
 from mithridate.toy.probes import welch_bound
 from mithridate.utils.logging import setup_logging
 
-RATIOS = [0.01, 0.02, 0.05, 0.10, 0.20, 0.40, 0.70, 1.00]
+RATIOS = [0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.10, 0.30, 1.00]
 
 app = typer.Typer(add_completion=False)
 
