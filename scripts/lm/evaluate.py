@@ -2,8 +2,8 @@
 
 Per checkpoint this produces (paper Sections 4-5, scaled down):
 - probe_report.json — per-head probe accuracies + top-30 ITI interventions (Figure 5)
-- detox_results.json — generation toxicity on RealToxicityPrompts and OpenWebText CE
-  loss for: base, prompting, and ITI at weak/mid/strong strengths (Figure 6, Table 1)
+- detox_results.json — generation toxicity on RealToxicityPrompts and held-out web-text
+  CE loss for: base, prompting, and ITI at weak/mid/strong strengths (Figure 6, Table 1)
 
 Launch (cluster): clusterkit run scripts/lm/evaluate.py --gpu 1 --timeout 4h -- \
     --ckpt-dir /workspace-vast/djrhails/ckpts/mithridate/toxic10_seed0
@@ -21,8 +21,8 @@ from transformers import GPT2LMHeadModel
 
 from mithridate.lm.datasets import (
     civil_comments_probe_set,
-    openwebtext_eval_texts,
     real_toxicity_prompts,
+    webtext_eval_texts,
 )
 from mithridate.lm.heads import apply_steering
 from mithridate.lm.probing import (
@@ -129,7 +129,7 @@ def evaluate_conditions(
 ) -> tuple[list[ConditionResult], int]:
     gen_tokenizer = gpt2_tokenizer(padding_side="left")
     prompts = real_toxicity_prompts(n_prompts=n_prompts)
-    owt = openwebtext_eval_texts()
+    webtext = webtext_eval_texts()
     scorer = ToxicityScorer()
     interventions = to_runtime_interventions(report.interventions)
     conditions: list[tuple[str, str, float | None]] = [
@@ -143,7 +143,7 @@ def evaluate_conditions(
         try:
             continuations = generate_continuations(model, gen_tokenizer, prompts, prefix=prefix)
             toxicity = float(np.mean(scorer.score(continuations))) * 100
-            ce = cross_entropy_loss(model, gen_tokenizer, owt)
+            ce = cross_entropy_loss(model, gen_tokenizer, webtext)
         finally:
             for handle in handles:
                 handle.remove()

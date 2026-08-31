@@ -44,7 +44,19 @@ def real_toxicity_prompts(*, n_prompts: int = 3000, seed: int = 0) -> list[str]:
     return [rows[int(i)]["prompt"]["text"] for i in idx]
 
 
-def openwebtext_eval_texts(*, n_docs: int = 500) -> list[str]:
-    """OpenWebText sample for the cross-entropy (alignment tax) column."""
-    rows = load_dataset("stas/openwebtext-10k", split="train")
-    return [rows[i]["text"] for i in range(min(n_docs, len(rows)))]
+def webtext_eval_texts(*, n_docs: int = 500) -> list[str]:
+    """Held-out web text for the cross-entropy (alignment tax) column.
+
+    The paper uses an OpenWebText subset; every OpenWebText mirror on the Hub is a
+    script-based dataset that modern `datasets` refuses to load, so we substitute a
+    FineWeb sample (parquet-native, same web-crawl register).
+    """
+    stream = load_dataset("HuggingFaceFW/fineweb", "sample-10BT", split="train", streaming=True)
+    texts: list[str] = []
+    for row in stream:
+        text = row["text"].strip()
+        if len(text) >= 200:
+            texts.append(text)
+        if len(texts) >= n_docs:
+            break
+    return texts

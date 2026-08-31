@@ -72,6 +72,7 @@ replication scales that down ~50× to fit single-GPU jobs:
 | Probing labels | ToxiGen human annotations (gated dataset) | google/civil_comments toxicity labels |
 | Generation prompts | Toxigen + RealToxicityPrompts (3,000 each) | RealToxicityPrompts only (3,000; ToxiGen is gated) |
 | Toxicity scorer | Perspective API | unitary/unbiased-toxic-roberta (no API key needed) |
+| CE (alignment tax) corpus | OpenWebText subset | FineWeb sample (every OpenWebText mirror is a script-based dataset modern `datasets` refuses to load) |
 | Baselines | prompting, ITI, MEDA, INST, SFT, DPO | prompting, ITI (MEDA/INST/SFT/DPO out of scope) |
 | Red-teaming (GCG) | Table 3 | out of scope |
 
