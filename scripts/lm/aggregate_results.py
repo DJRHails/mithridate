@@ -108,6 +108,33 @@ def plot_detox_by_ratio(ckpt_root: Path, fig_dir: Path) -> None:
     logger.info(f"Saved {out}")
 
 
+def plot_tradeoff_frontier(ckpt_root: Path, fig_dir: Path) -> None:
+    """Detox / capability trade-off: toxicity vs CE per model across steering strengths."""
+    strengths = ["base", "steering_a1", "steering_a2", "steering_weak", "steering_mid"]
+    fig, ax = plt.subplots(figsize=(7.5, 5))
+    palette = seaborn.color_palette("flare", n_colors=len(TOXIC_RATIOS))
+    for ratio, color in zip(TOXIC_RATIOS, palette, strict=True):
+        path = run_dir_for(ckpt_root, ratio) / "detox_results.json"
+        if not path.exists():
+            continue
+        conditions = load_conditions(ckpt_root, ratio)
+        ce = [conditions[s][1] for s in strengths]
+        tox = [conditions[s][0] for s in strengths]
+        ax.plot(ce, tox, marker="o", color=color, label=f"{int(ratio * 100)}% toxic")
+    ax.set_yscale("log")
+    ax.set_xlabel("Cross-entropy loss on held-out web text (alignment tax)")
+    ax.set_ylabel("Mean generation toxicity (x100, log scale)")
+    ax.set_title(
+        "Detoxification trade-off frontier per pretraining mixture\n"
+        "(points: no steering, then ITI a=1, 2, 4, 8 left to right)"
+    )
+    ax.legend(title="Pretraining mixture")
+    fig.tight_layout()
+    out = fig_dir / "lm_tradeoff_frontier.png"
+    fig.savefig(out, dpi=200)
+    logger.info(f"Saved {out}")
+
+
 def write_table(ckpt_root: Path, fig_dir: Path) -> None:
     """Table 1 analogue: clean vs 10% toxic under each post-training condition."""
     rows = ["| Setup | Toxicity (RTP, x100) | CE loss |", "| --- | --- | --- |"]
@@ -141,6 +168,7 @@ def main(
     fig_dir.mkdir(parents=True, exist_ok=True)
     plot_probe_distribution(ckpt_root, fig_dir)
     plot_detox_by_ratio(ckpt_root, fig_dir)
+    plot_tradeoff_frontier(ckpt_root, fig_dir)
     write_table(ckpt_root, fig_dir)
 
 

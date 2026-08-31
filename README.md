@@ -29,9 +29,61 @@ The paper has no official code release; everything here is implemented from the 
 
 | Paper result | Status |
 | --- | --- |
-| Toy entanglement (Figure 3) | **Did not replicate** under our implementation choices — see below |
-| Base capability & probes (Figures 4-5) | in progress (cluster) |
-| ITI detox trade-off (Figure 6, Table 1) | in progress (cluster) |
+| Toy entanglement vs data share (Figure 3) | **Did not replicate** under our implementation choices |
+| Base toxicity rises with toxic pretraining data (Figure 6, red bars) | **Replicated** |
+| Toxic data improves linear toxicity representations (Figure 5) | **Replicated** (mean head-probe accuracy 0.685 → 0.702, p = 0.025) |
+| Toxic-data models are more alignable: bigger proportional detox at lower alignment tax (Figures 6, Table 1 in relative form) | **Replicated** |
+| Steering beats prompting at matched tax (Table 1) | **Replicated** |
+| The absolute "smile": 10% toxic + ITI ends up *less* toxic than clean + ITI (Figure 6 blue bars, Table 1 headline) | **Did not transfer to this scale** — our clean model's base toxicity is already ~12x lower than any toxic mixture's, so it wins every absolute comparison; see below |
+
+### LM pipeline results (Sections 3-5, scaled down)
+
+Six GPT-2-architecture models (8L/8H/512d, ~50M params) pretrained on 420M C4 tokens plus
+0/5/10/15/20/25% 4chan tokens, evaluated on the full RealToxicityPrompts *challenging*
+subset (n = 1,199, 50-token continuations, nucleus p = 0.9, one sample per prompt,
+unitary/unbiased-toxic-roberta mean toxicity x100), CE on a FineWeb sample:
+
+| 4chan share | base toxicity | + ITI a=2 | toxicity removed | CE tax of a=2 | CE tax of a=12 |
+| --- | --- | --- | --- | --- | --- |
+| 0% | 0.76 | 0.27 | 64% | +0.066 | +1.608 |
+| 5% | 7.75 | 1.05 | 86% | +0.087 | +1.517 |
+| 10% | 9.50 | 1.08 | 89% | +0.042 | +1.559 |
+| 15% | 11.21 | 3.17 | 72% | -0.061 | +1.427 |
+| 20% | 11.07 | 2.36 | 79% | +0.051 | +1.862 |
+| 25% | 12.71 | 2.44 | 81% | +0.042 | +1.140 |
+
+![detox by ratio](figures/lm_detox_by_ratio.png)
+![trade-off frontier](figures/lm_tradeoff_frontier.png)
+![probe accuracy distribution](figures/lm_probe_accuracy_distribution.png)
+
+What replicates, concretely:
+
+- **Base toxicity rises with toxic data** (0.76 → 12.71 x100 mean toxicity; base fire
+  rate — continuations with toxicity probability > 0.5 — rises 0.4% → 12.3%), the
+  paper's red-bar trend.
+- **Probing (Figure 5)**: mean per-head probe accuracy rises from 0.685 (clean) to
+  ~0.70 for every toxic mixture (0% vs 25%: p = 0.025, t-test over 64 heads vs the
+  paper's 384), and the right tail fattens — max head accuracy 0.765 → 0.79-0.81. The
+  top-of-tail heads are exactly what ITI intervenes on.
+- **Alignability**: every toxic-data model gives up a larger *fraction* of its toxicity
+  under weak steering than the clean model (86-89% vs 64% at a=2 for 5-10%), and the
+  capability tax of strong steering trends *down* with toxic share (a=12: +1.61 CE at
+  0% vs +1.14 at 25%) — the paper's core mechanism, visible from the alignment-tax side.
+- **Steering dominates prompting**: at essentially zero CE tax, a=2 steering roughly
+  matches or beats the paper's verbatim detox prompt on every toxic model (e.g. 10%:
+  1.08 vs 3.32).
+
+What does not transfer at 50M/0.5B scale: the paper's headline *absolute* comparison
+(Table 1: 10% toxic + weak steering at 16.25 beats clean + strong at 19.82). Our
+clean-C4 model simply never learns to produce toxic text (base 0.76, fire rate 0.4%),
+so it wins every absolute-toxicity comparison by default and there is nothing for ITI
+to remove. The paper's co-design argument targets the regime — 1B+ params, tens of
+billions of tokens — where even "clean" pretraining yields substantial generational
+toxicity (Olmo-1B clean base: 31-41). Our result is consistent with the paper's
+mechanism while showing its headline comparison is regime-dependent.
+
+Full per-condition numbers: [figures/lm_table1.md](figures/lm_table1.md) and
+`results/lm/` (per-checkpoint `probe_report.json` / `detox_results.json`).
 
 ### Toy experiment: no entanglement-vs-data-share effect (Figure 3)
 

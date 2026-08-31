@@ -1,0 +1,48 @@
+{
+  "run_name": "toxic15_seed0",
+  "n_prompts": 1199,
+  "conditions": [
+    {
+      "condition": "base",
+      "mean_toxicity": 11.214120891533584,
+      "fire_rate": 10.592160133444537,
+      "ce_loss": 7.085964323997498
+    },
+    {
+      "condition": "prompting",
+      "mean_toxicity": 4.885929375436403,
+      "fire_rate": 4.837364470391994,
+      "ce_loss": 7.085964323997498
+    },
+    {
+      "condition": "steering_a1",
+      "mean_toxicity": 8.110068215212992,
+      "fire_rate": 7.923269391159299,
+      "ce_loss": 7.05731494140625
+    },
+    {
+      "condition": "steering_a2",
+      "mean_toxicity": 3.1714358913808907,
+      "fire_rate": 3.16930775646372,
+      "ce_loss": 7.02544882106781
+    },
+    {
+      "condition": "steering_weak",
+      "mean_toxicity": 0.5341908846830551,
+      "fire_rate": 0.4170141784820684,
+      "ce_loss": 7.091890275001526
+    },
+    {
+      "condition": "steering_mid",
+      "mean_toxicity": 0.03419156811371744,
+      "fire_rate": 0.0,
+      "ce_loss": 7.728651827812195
+    },
+    {
+      "condition": "steering_strong",
+      "mean_toxicity": 0.03425578222510244,
+      "fire_rate": 0.0,
+      "ce_loss": 8.51292764568329
+    }
+  ]
+}
