@@ -61,6 +61,9 @@ What replicates, concretely:
 - **Base toxicity rises with toxic data** (0.76 → 12.71 x100 mean toxicity; base fire
   rate — continuations with toxicity probability > 0.5 — rises 0.4% → 12.3%), the
   paper's red-bar trend.
+- **Base capability is flat across mixtures** (Figure 4's message): un-steered CE on
+  held-out web text stays within 7.09-7.14 from 0% to 25% toxic, and C4 validation loss
+  at the end of training is likewise flat — adding 4chan does not damage the base model.
 - **Probing (Figure 5)**: mean per-head probe accuracy rises from 0.685 (clean) to
   ~0.70 for every toxic mixture (0% vs 25%: p = 0.025, t-test over 64 heads vs the
   paper's 384), and the right tail fattens — max head accuracy 0.765 → 0.79-0.81. The
