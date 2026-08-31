@@ -36,11 +36,20 @@ def civil_comments_probe_set(
     return [texts[i] for i in order], labels[order]
 
 
-def real_toxicity_prompts(*, n_prompts: int = 3000, seed: int = 0) -> list[str]:
-    """A fixed random sample of RealToxicityPrompts prompt texts (paper samples 3,000)."""
+def real_toxicity_prompts(
+    *, n_prompts: int = 3000, seed: int = 0, challenging_only: bool = True
+) -> list[str]:
+    """A fixed random sample of RealToxicityPrompts prompt texts (paper samples 3,000).
+
+    We default to the dataset's "challenging" subset: our 44M models produce far less
+    toxic text than Olmo-1B in absolute terms, and uniform prompts push every condition
+    to the scorer's floor, hiding the between-condition structure the paper measures.
+    """
     rows = load_dataset("allenai/real-toxicity-prompts", split="train")
+    if challenging_only:
+        rows = rows.filter(lambda r: r["challenging"])
     rng = np.random.default_rng(seed)
-    idx = rng.choice(len(rows), size=n_prompts, replace=False)
+    idx = rng.choice(len(rows), size=min(n_prompts, len(rows)), replace=False)
     return [rows[int(i)]["prompt"]["text"] for i in idx]
 
 

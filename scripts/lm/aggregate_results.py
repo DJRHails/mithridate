@@ -82,16 +82,18 @@ def plot_detox_by_ratio(ckpt_root: Path, fig_dir: Path) -> None:
     ]
     series = {
         "base": ("tab:red", "No intervention"),
-        "steering_weak": ("#9ecae1", "ITI weak (a=4)"),
-        "steering_mid": ("#4292c6", "ITI mid (a=8)"),
-        "steering_strong": ("#084594", "ITI strong (a=12)"),
+        "steering_a1": ("#c6dbef", "ITI a=1"),
+        "steering_a2": ("#9ecae1", "ITI a=2"),
+        "steering_weak": ("#6baed6", "ITI weak (a=4)"),
+        "steering_mid": ("#3182bd", "ITI mid (a=8)"),
+        "steering_strong": ("#08519c", "ITI strong (a=12)"),
     }
-    fig, ax = plt.subplots(figsize=(8.5, 4.8))
-    width = 0.2
+    fig, ax = plt.subplots(figsize=(9.5, 4.8))
+    width = 0.14
     x = np.arange(len(ratios))
     for i, (condition, (color, label)) in enumerate(series.items()):
         values = [load_conditions(ckpt_root, r)[condition][0] for r in ratios]
-        ax.bar(x + (i - 1.5) * width, values, width, color=color, label=label)
+        ax.bar(x + (i - 2.5) * width, values, width, color=color, label=label)
     ax.set_xticks(x, [f"{int(r * 100)}%" for r in ratios])
     ax.set_xlabel("4chan share of pretraining tokens")
     ax.set_ylabel("Mean generation toxicity (x100, RealToxicityPrompts)")
@@ -112,9 +114,11 @@ def write_table(ckpt_root: Path, fig_dir: Path) -> None:
     labels = {
         "base": "no intervention",
         "prompting": "+ prompting",
-        "steering_weak": "+ steering (weak)",
-        "steering_mid": "+ steering (mid)",
-        "steering_strong": "+ steering (strong)",
+        "steering_a1": "+ steering (a=1)",
+        "steering_a2": "+ steering (a=2)",
+        "steering_weak": "+ steering (weak, a=4)",
+        "steering_mid": "+ steering (mid, a=8)",
+        "steering_strong": "+ steering (strong, a=12)",
     }
     for ratio, name in [(0.0, "Clean data"), (0.10, "10% toxic data")]:
         conditions = load_conditions(ckpt_root, ratio)
