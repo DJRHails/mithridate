@@ -13,13 +13,13 @@ from loguru import logger
 from pydantic import BaseModel
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
-from transformers import GPT2LMHeadModel, PreTrainedTokenizerBase
 
+from mithridate.lm.adapters import ModelAdapter
 from mithridate.lm.heads import HeadCapture, HeadIntervention, directions_from_activations
 
 
 class HeadInterventionModel(BaseModel):
-    layer: int
+    layer: int  # absolute decoder-layer index of the attention site
     head: int
     accuracy: float
     direction: list[float]
@@ -30,35 +30,35 @@ class ProbeReport(BaseModel):
     """Per-head validation accuracies plus ITI directions for the top heads."""
 
     run_name: str
-    accuracy: list[list[float]]  # [layer][head]
+    site_layers: list[int]  # absolute layer index of each probed attention site
+    accuracy: list[list[float]]  # [site][head]
     interventions: list[HeadInterventionModel]
 
 
 @torch.no_grad()
 def collect_last_token_activations(
-    model: GPT2LMHeadModel,
-    tokenizer: PreTrainedTokenizerBase,
+    adapter: ModelAdapter,
     texts: list[str],
     *,
     batch_size: int = 64,
     max_length: int = 128,
-) -> Float[np.ndarray, "examples layer n_head d_head"]:
+) -> Float[np.ndarray, "examples site n_head head_dim"]:
     """Per-head activations at the last non-pad token of each text."""
+    model = adapter.model
     device = next(model.parameters()).device
-    n_head = model.config.n_head
     model.eval()
     chunks = []
     for start in range(0, len(texts), batch_size):
-        batch = tokenizer(
+        batch = adapter.tokenizer(
             texts[start : start + batch_size],
             return_tensors="pt",
             padding=True,
             truncation=True,
             max_length=max_length,
         ).to(device)
-        with HeadCapture(model) as capture:
+        with HeadCapture(adapter.sites) as capture:
             model(**batch)
-            acts = capture.stacked(n_head=n_head)  # (L, B, T, H, dh)
+            acts = capture.stacked()  # (S, B, T, H, dh)
         last = batch["attention_mask"].sum(dim=1) - 1  # (B,)
         batch_idx = torch.arange(acts.shape[1], device=device)
         chunks.append(acts[:, batch_idx, last].permute(1, 0, 2, 3).float().cpu().numpy())
@@ -75,40 +75,41 @@ def probe_all_heads(
 
     Returns (accuracy[L, H], train_idx, val_idx, labels) for reuse by the ITI step.
     """
-    n_examples, n_layer, n_head, _ = activations.shape
+    n_examples, n_sites, n_head, _ = activations.shape
     train_idx, val_idx = train_test_split(
         np.arange(n_examples), test_size=0.2, random_state=seed, stratify=labels
     )
-    accuracy = np.zeros((n_layer, n_head))
-    for layer in range(n_layer):
+    accuracy = np.zeros((n_sites, n_head))
+    for site in range(n_sites):
         for head in range(n_head):
-            x = activations[:, layer, head]
+            x = activations[:, site, head]
             probe = LogisticRegression(max_iter=2000)
             probe.fit(x[train_idx], labels[train_idx])
-            accuracy[layer, head] = probe.score(x[val_idx], labels[val_idx])
-        logger.info(f"layer {layer}: mean acc {accuracy[layer].mean():.3f}")
+            accuracy[site, head] = probe.score(x[val_idx], labels[val_idx])
+        logger.info(f"site {site}: mean acc {accuracy[site].mean():.3f}")
     return accuracy, train_idx, val_idx, labels
 
 
 def top_head_interventions(
-    activations: Float[np.ndarray, "examples layer n_head d_head"],
+    activations: Float[np.ndarray, "examples site n_head head_dim"],
     labels: np.ndarray,
-    accuracy: Float[np.ndarray, "layer n_head"],
+    accuracy: Float[np.ndarray, "site n_head"],
+    site_layers: list[int],
     *,
     top_k: int = 30,
 ) -> list[HeadInterventionModel]:
     """Mass-mean-shift interventions for the top_k heads by probe accuracy (ITI)."""
-    n_layer, n_head = accuracy.shape
+    _, n_head = accuracy.shape
     order = np.argsort(accuracy, axis=None)[::-1][:top_k]
     interventions = []
     for flat in order:
-        layer, head = int(flat // n_head), int(flat % n_head)
-        direction, sigma = directions_from_activations(activations[:, layer, head], labels)
+        site, head = int(flat // n_head), int(flat % n_head)
+        direction, sigma = directions_from_activations(activations[:, site, head], labels)
         interventions.append(
             HeadInterventionModel(
-                layer=layer,
+                layer=site_layers[site],
                 head=head,
-                accuracy=float(accuracy[layer, head]),
+                accuracy=float(accuracy[site, head]),
                 direction=[float(v) for v in direction],
                 sigma=sigma,
             )

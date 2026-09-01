@@ -9,7 +9,8 @@ subprocess.run(
     [
         sys.executable,
         "scripts/lm/evaluate.py",
-        "--ckpt-dir", f"/workspace-vast/{USER}/ckpts/mithridate/toxic25_seed0",
+        "--ckpt-dir",
+        f"/workspace-vast/{USER}/ckpts/mithridate/toxic25_seed0",
     ],
     check=True,
 )

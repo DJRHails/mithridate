@@ -22,9 +22,7 @@ class ToxicityScorer:
     """Batched toxicity probability scorer."""
 
     def __init__(self, device: str = "cuda") -> None:
-        self.tokenizer = cast(
-            PreTrainedTokenizerBase, AutoTokenizer.from_pretrained(SCORER_MODEL)
-        )
+        self.tokenizer = cast(PreTrainedTokenizerBase, AutoTokenizer.from_pretrained(SCORER_MODEL))
         self.model = AutoModelForSequenceClassification.from_pretrained(SCORER_MODEL)
         self.model.to(device).eval()
         self.device = device
