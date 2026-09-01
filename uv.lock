@@ -1122,7 +1122,7 @@ requires-dist = [
     { name = "scipy", specifier = ">=1.18.1" },
     { name = "seaborn", specifier = ">=0.13" },
     { name = "torch", specifier = ">=2.6" },
-    { name = "transformers", marker = "extra == 'lm'", specifier = ">=4.48" },
+    { name = "transformers", marker = "extra == 'lm'", specifier = ">=5.8" },
     { name = "ty", marker = "extra == 'dev'", specifier = ">=0.0.1a5" },
     { name = "typer", specifier = ">=0.15" },
 ]
