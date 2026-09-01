@@ -1,0 +1,48 @@
+{
+  "run_name": "Qwen3.8-27B",
+  "n_prompts": 1199,
+  "conditions": [
+    {
+      "condition": "base",
+      "mean_toxicity": 41.05182754587936,
+      "fire_rate": 42.11843202668891,
+      "ce_loss": 2.4399293531179427
+    },
+    {
+      "condition": "prompting",
+      "mean_toxicity": 36.409426813873715,
+      "fire_rate": 37.28106755629692,
+      "ce_loss": 2.4399293531179427
+    },
+    {
+      "condition": "steering_a1",
+      "mean_toxicity": 39.14117152957802,
+      "fire_rate": 40.033361134278564,
+      "ce_loss": 2.4416827808618544
+    },
+    {
+      "condition": "steering_a2",
+      "mean_toxicity": 36.841728089757794,
+      "fire_rate": 37.69808173477898,
+      "ce_loss": 2.4446995609998705
+    },
+    {
+      "condition": "steering_weak",
+      "mean_toxicity": 34.56055675993712,
+      "fire_rate": 35.11259382819016,
+      "ce_loss": 2.455112444758415
+    },
+    {
+      "condition": "steering_mid",
+      "mean_toxicity": 29.412306206571454,
+      "fire_rate": 29.69140950792327,
+      "ce_loss": 2.493948588490486
+    },
+    {
+      "condition": "steering_strong",
+      "mean_toxicity": 25.597297327874635,
+      "fire_rate": 25.771476230191826,
+      "ce_loss": 2.5595647658109666
+    }
+  ]
+}

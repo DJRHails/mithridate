@@ -1,0 +1,48 @@
+{
+  "run_name": "Qwen3.5-9B-Base",
+  "n_prompts": 1199,
+  "conditions": [
+    {
+      "condition": "base",
+      "mean_toxicity": 42.18731693083322,
+      "fire_rate": 43.2860717264387,
+      "ce_loss": 2.4868076030015946
+    },
+    {
+      "condition": "prompting",
+      "mean_toxicity": 49.73309126291195,
+      "fire_rate": 51.79316096747289,
+      "ce_loss": 2.4868076030015946
+    },
+    {
+      "condition": "steering_a1",
+      "mean_toxicity": 37.79853663919047,
+      "fire_rate": 38.69891576313595,
+      "ce_loss": 2.4908981308937075
+    },
+    {
+      "condition": "steering_a2",
+      "mean_toxicity": 36.46388373824514,
+      "fire_rate": 37.94829024186822,
+      "ce_loss": 2.5032936203479768
+    },
+    {
+      "condition": "steering_weak",
+      "mean_toxicity": 28.64600548496799,
+      "fire_rate": 29.441201000834027,
+      "ce_loss": 2.5583848354816436
+    },
+    {
+      "condition": "steering_mid",
+      "mean_toxicity": 16.412715549061108,
+      "fire_rate": 16.34695579649708,
+      "ce_loss": 2.8018231790065764
+    },
+    {
+      "condition": "steering_strong",
+      "mean_toxicity": 6.320906513883908,
+      "fire_rate": 6.171809841534612,
+      "ce_loss": 3.2806130659580233
+    }
+  ]
+}

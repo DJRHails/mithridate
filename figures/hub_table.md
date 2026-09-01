@@ -1,0 +1,23 @@
+| Model | Condition | Toxicity (x100) | Fire rate (x100) | CE |
+| --- | --- | --- | --- | --- |
+| Qwen3.5-0.8B-Base | base | 34.39 | 35.45 | 3.049 |
+| Qwen3.5-0.8B-Base | prompting | 37.98 | 39.53 | 3.049 |
+| Qwen3.5-0.8B-Base | steering_a1 | 30.94 | 31.61 | 3.058 |
+| Qwen3.5-0.8B-Base | steering_a2 | 29.68 | 30.44 | 3.083 |
+| Qwen3.5-0.8B-Base | steering_weak | 24.10 | 24.10 | 3.189 |
+| Qwen3.5-0.8B-Base | steering_mid | 9.91 | 10.09 | 3.697 |
+| Qwen3.5-0.8B-Base | steering_strong | 1.15 | 1.25 | 4.859 |
+| Qwen3.5-9B-Base | base | 42.19 | 43.29 | 2.487 |
+| Qwen3.5-9B-Base | prompting | 49.73 | 51.79 | 2.487 |
+| Qwen3.5-9B-Base | steering_a1 | 37.80 | 38.70 | 2.491 |
+| Qwen3.5-9B-Base | steering_a2 | 36.46 | 37.95 | 2.503 |
+| Qwen3.5-9B-Base | steering_weak | 28.65 | 29.44 | 2.558 |
+| Qwen3.5-9B-Base | steering_mid | 16.41 | 16.35 | 2.802 |
+| Qwen3.5-9B-Base | steering_strong | 6.32 | 6.17 | 3.281 |
+| Qwen3.8-27B | base | 41.05 | 42.12 | 2.440 |
+| Qwen3.8-27B | prompting | 36.41 | 37.28 | 2.440 |
+| Qwen3.8-27B | steering_a1 | 39.14 | 40.03 | 2.442 |
+| Qwen3.8-27B | steering_a2 | 36.84 | 37.70 | 2.445 |
+| Qwen3.8-27B | steering_weak | 34.56 | 35.11 | 2.455 |
+| Qwen3.8-27B | steering_mid | 29.41 | 29.69 | 2.494 |
+| Qwen3.8-27B | steering_strong | 25.60 | 25.77 | 2.560 |

@@ -35,6 +35,7 @@ The paper has no official code release; everything here is implemented from the 
 | Toxic-data models are more alignable: bigger proportional detox at lower alignment tax (Figures 6, Table 1 in relative form) | **Replicated** |
 | Steering beats prompting at matched tax (Table 1) | **Replicated** |
 | The absolute "smile": 10% toxic + ITI ends up *less* toxic than clean + ITI (Figure 6 blue bars, Table 1 headline) | **Did not transfer to this scale** — our clean model's base toxicity is already ~12x lower than any toxic mixture's, so it wins every absolute comparison; see below |
+| Scale-up: probing + ITI on production Qwen models (best <32B per Artificial Analysis) | **ITI replicates at scale on base models** (85-97% detox on Qwen3.5 bases); the aligned Qwen3.8-27B resists head steering (-38%) — see the scale-up section |
 
 ### LM pipeline results (Sections 3-5, scaled down)
 
@@ -87,6 +88,54 @@ mechanism while showing its headline comparison is regime-dependent.
 
 Full per-condition numbers: [figures/lm_table1.md](figures/lm_table1.md) and
 `results/lm/` (per-checkpoint `probe_report.json` / `detox_results.json`).
+
+## Scale-up: the paper's post-training machinery on production Qwen models
+
+Per [Artificial Analysis](https://artificialanalysis.ai/models), the best Qwen model
+under 32B parameters is **Qwen3.8-27B** (dense, Intelligence Index 52, released
+2026-08-14). Qwen ships no base variant of it (base releases stopped at Qwen3.5), so the
+scale-up runs the paper's Sections 4-5 machinery — per-head toxicity probing and top-30
+head ITI — on the aligned 27B, with **Qwen3.5-9B-Base** and **Qwen3.5-0.8B-Base** as
+base-model arms (the paper's substrate is base models). The pretraining-mixture axis
+cannot be varied for off-the-shelf models; what scales is the probing claim and the
+detox/capability frontier. The qwen3_5 family is hybrid-attention, so probing covers its
+full-attention layers only (16 of 64 on the 27B = 384 heads, the paper's Olmo head
+count; 8/6 sites on 9B/0.8B). Same instrument as above: RTP challenging (n=1,199),
+50-token continuations, unbiased-toxic-roberta, CE in each model's own tokenizer
+(comparable within a model, not across).
+
+![hub frontier](figures/hub_tradeoff_frontier.png)
+
+| Model | Probe mean / max | Base tox | + prompt | + ITI a=12 | CE base -> a=12 |
+| --- | --- | --- | --- | --- | --- |
+| Qwen3.5-0.8B-Base | 0.759 / 0.800 | 34.4 | 38.0 (worse) | **1.2** (-97%) | 3.05 -> 4.86 |
+| Qwen3.5-9B-Base | 0.758 / 0.818 | 42.2 | 49.7 (worse) | **6.3** (-85%) | 2.49 -> 3.28 |
+| Qwen3.8-27B (aligned) | 0.732 / 0.805 | 41.1 | 36.4 | 25.6 (-38%) | 2.44 -> 2.56 |
+
+What the scale-up shows:
+
+- **Production-scale models sit exactly in the paper's regime.** Base toxicity 34-42
+  (paper's Olmo-1B: 31-46) and probe accuracies (mean 0.73-0.76, max 0.80-0.82) far above
+  our 44M models' 0.69/0.77 — consistent with the paper's premise that scale and broad
+  data build strong linear toxicity representations, and confirming the small-scale
+  "absolute smile" failure above is a regime artifact, not a method artifact.
+- **ITI scales on base models.** 85-97% toxicity reduction on the Qwen3.5 bases, tracing
+  a smooth frontier — the paper's post-training half works as advertised at 9B.
+- **The aligned 27B resists head steering.** Raw-completion base toxicity is still 41
+  (alignment does not survive completion mode — the Lee et al. "bypass, not remove"
+  premise the paper builds on), yet the same top-30-head intervention removes only 38%
+  even at a=12, versus 85% on the 9B base — although at almost no capability tax
+  (CE +0.12). Confounds: 30 heads is a smaller fraction of 384, and the alignment
+  training itself may distribute the mechanism; distinguishing these needs a
+  head-count sweep.
+- **The paper's detox prompt backfires on base models** (+4 to +8 toxicity on the Qwen
+  bases; also +0.2 on our 44M clean model) while helping the aligned 27B (-4.6). The
+  paper reported prompting helps base Olmo; on Qwen bases we find the opposite — a
+  safety instruction is evidence *about* upcoming toxic content for a pure completion
+  model.
+
+Reproduce with `scripts/lm/evaluate_pretrained.py --model-id <hub-id>`; per-model JSONs
+in `results/hub/`, full table in [figures/hub_table.md](figures/hub_table.md).
 
 ### Toy experiment: no entanglement-vs-data-share effect (Figure 3)
 
