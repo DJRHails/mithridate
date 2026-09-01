@@ -77,16 +77,20 @@ def local_gpt2_adapter(ckpt_dir: Path, device: str) -> ModelAdapter:
 
 
 def _decoder_layers(model: torch.nn.Module) -> torch.nn.ModuleList:
-    """The decoder-layer ModuleList: the longest ModuleList whose entries carry self_attn."""
+    """The decoder-layer ModuleList: the longest one whose entries carry an attention block.
+
+    Hybrid qwen3_5 layers hold `linear_attn` (GatedDeltaNet) on most layers and
+    `self_attn` on the full-attention ones, so either attribute marks a decoder layer.
+    """
     candidates = [
         module
         for _, module in model.named_modules()
         if isinstance(module, torch.nn.ModuleList)
         and len(module) > 0
-        and hasattr(module[0], "self_attn")
+        and (hasattr(module[0], "self_attn") or hasattr(module[0], "linear_attn"))
     ]
     if not candidates:
-        raise ValueError(f"No decoder layers with self_attn found in {type(model).__name__}")
+        raise ValueError(f"No decoder layers with attention found in {type(model).__name__}")
     return max(candidates, key=len)
 
 
